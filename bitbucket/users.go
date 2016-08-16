@@ -21,13 +21,12 @@ type User struct {
 
 // Use the /user endpoints to gets information related to a user
 // or team account
-//
 // https://confluence.atlassian.com/display/BITBUCKET/user+Endpoint
 type UserResource struct {
 	client *Client
 }
 
-// Gets the basic information associated with an account and a list
+// Current - Gets the basic information associated with an account and a list
 // of all its repositories both public and private.
 func (r *UserResource) Current() (*Account, error) {
 	user := Account{}
@@ -38,7 +37,7 @@ func (r *UserResource) Current() (*Account, error) {
 	return &user, nil
 }
 
-// Gets the basic information associated with the specified user
+// Find - Gets the basic information associated with the specified user
 // account.
 func (r *UserResource) Find(username string) (*Account, error) {
 	user := Account{}
@@ -51,8 +50,8 @@ func (r *UserResource) Find(username string) (*Account, error) {
 	return &user, nil
 }
 
-/* TODO 
-// Updates the basic information associated with an account.
+/* TODO
+// Update the basic information associated with an account.
 // It operates on the currently authenticated user.
 func (r *UserResource) Update(user *User) (*User, error) {
 	return nil, nil

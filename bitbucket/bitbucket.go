@@ -20,6 +20,7 @@ func New(auth Auth) *Client {
 	c.Teams = &TeamResource{c}
 	c.RepoKeys = &RepoKeyResource{c}
 	c.Sources = &SourceResource{c}
+	c.Groups = &GroupResource{c}
 	return c
 }
 
@@ -35,6 +36,7 @@ type Client struct {
 	Teams    *TeamResource
 	Sources  *SourceResource
 	RepoKeys *RepoKeyResource
+	Groups   *GroupResource
 }
 
 // Guest Client that can be used to access
