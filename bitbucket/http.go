@@ -63,6 +63,7 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		Close:      true,
+		Header:     make(http.Header),
 	}
 
 	if values != nil && len(values) > 0 {
