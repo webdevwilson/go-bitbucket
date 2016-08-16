@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/drone/go-bitbucket/oauth1"
 )
 
 var (
@@ -48,12 +46,6 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 		return c.guest(method, path, params, values, v)
 	}
 
-	// create the client
-	var client = oauth1.Consumer{
-		ConsumerKey:    c.ConsumerKey,
-		ConsumerSecret: c.ConsumerSecret,
-	}
-
 	// create the URI
 	uri, err := url.Parse("https://api.bitbucket.org/1.0" + path)
 	if err != nil {
@@ -63,9 +55,6 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 	if params != nil && len(params) > 0 {
 		uri.RawQuery = params.Encode()
 	}
-
-	// create the access token
-	token := oauth1.NewAccessToken(c.AccessToken, c.TokenSecret, nil)
 
 	// create the request
 	req := &http.Request{
@@ -86,10 +75,8 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 	// (we'll need this in order to sign the request)
 	req.Form = values
 
-	// sign the request
-	if err := client.Sign(req, token); err != nil {
-		return err
-	}
+	// add authentication to the request
+	c.auth.authenticate(req)
 
 	// make the request using the default http client
 	resp, err := DefaultClient.Do(req)

@@ -9,12 +9,8 @@ var (
 )
 
 // New creates an instance of the Bitbucket Client
-func New(consumerKey, consumerSecret, accessToken, tokenSecret string) *Client {
-	c := &Client{}
-	c.ConsumerKey = consumerKey
-	c.ConsumerSecret = consumerSecret
-	c.AccessToken = accessToken
-	c.TokenSecret = tokenSecret
+func New(auth Auth) *Client {
+	c := &Client{auth: auth}
 
 	c.Keys = &KeyResource{c}
 	c.Repos = &RepoResource{c}
@@ -27,11 +23,9 @@ func New(consumerKey, consumerSecret, accessToken, tokenSecret string) *Client {
 	return c
 }
 
+// Client the Bitbucket client
 type Client struct {
-	ConsumerKey    string
-	ConsumerSecret string
-	AccessToken    string
-	TokenSecret    string
+	auth Auth
 
 	Repos    *RepoResource
 	Users    *UserResource
@@ -45,4 +39,4 @@ type Client struct {
 
 // Guest Client that can be used to access
 // public APIs that do not require authentication.
-var Guest = New("", "", "", "")
+var Guest = New(&Anonymous{})

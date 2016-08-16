@@ -14,6 +14,11 @@ var (
 
 	// Dummy repo that we'll use to run integration tests
 	testRepo string
+
+	// Password to use if using BASIC auth for tests
+	testPassword string
+
+	auth Auth
 )
 
 var (
@@ -35,21 +40,38 @@ func init() {
 	tokenSecret = os.Getenv("BB_TOKEN_SECRET")
 	testUser = os.Getenv("BB_USER")
 	testRepo = os.Getenv("BB_REPO")
+	testPassword = os.Getenv("BB_PASSWORD")
 
 	switch {
-	case len(consumerKey) == 0:
-		panic(errors.New("must set the BB_CONSUMER_KEY environment variable"))
-	case len(consumerSecret) == 0:
-		panic(errors.New("must set the BB_CONSUMER_SECRET environment variable"))
-	case len(accessToken) == 0:
-		panic(errors.New("must set the BB_ACCESS_TOKEN environment variable"))
-	case len(tokenSecret) == 0:
-		panic(errors.New("must set the BB_TOKEN_SECRET environment variable"))
 	case len(testUser) == 0:
 		panic(errors.New("must set the BB_USER environment variable"))
 	case len(testRepo) == 0:
 		panic(errors.New("must set the BB_REPO environment variable"))
 	}
 
-	client = New(consumerKey, consumerSecret, accessToken, tokenSecret)
+	// if we have no password, we must use OAuth
+	if len(testPassword) == 0 {
+		switch {
+		case len(consumerKey) == 0:
+			panic(errors.New("must set the BB_CONSUMER_KEY environment variable"))
+		case len(consumerSecret) == 0:
+			panic(errors.New("must set the BB_CONSUMER_SECRET environment variable"))
+		case len(accessToken) == 0:
+			panic(errors.New("must set the BB_ACCESS_TOKEN environment variable"))
+		case len(tokenSecret) == 0:
+			panic(errors.New("must set the BB_TOKEN_SECRET environment variable"))
+		}
+		auth = &OAuth{
+			ConsumerKey:    consumerKey,
+			ConsumerSecret: consumerSecret,
+			AccessToken:    accessToken,
+			TokenSecret:    tokenSecret,
+		}
+	} else {
+		auth = &BasicAuth{
+			Username: testUser,
+			Password: testPassword,
+		}
+	}
+	client = New(auth)
 }
