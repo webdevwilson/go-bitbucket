@@ -21,13 +21,13 @@ func TestGroupsUnmarshal(t *testing.T) {
 	assert.Equal(t, false, group.EmailForwardingDisabled)
 }
 
-func Test_Create(t *testing.T) {
+func TestGroupsCreate(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	testGroup := "Test_Create"
 	group, err := client.Groups.Create(testUser, testGroup)
-	defer client.Groups.Delete(testUser, testGroup)
+	defer client.Groups.Delete(testUser, group.Slug)
 
 	// create
 	assert.NoError(t, err)
@@ -37,7 +37,7 @@ func Test_Create(t *testing.T) {
 	assert.Equal(t, false, group.EmailForwardingDisabled)
 	assert.Equal(t, false, group.AutoAdd)
 	assert.Equal(t, testUser, group.Owner.Username)
-	assert.Equal(t, group, group.Name)
+	assert.Equal(t, testGroup, group.Name)
 }
 
 func TestGroupsDelete(t *testing.T) {
@@ -76,15 +76,16 @@ func TestGroupsDelete(t *testing.T) {
 // 	assert.NotEmpty(t, groups, "no groups found")
 // }
 //
-func Test_Find(t *testing.T) {
+func TestGroupsFind(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
-	testGroup := "Test_List"
+	testGroup := "Test_Find"
 	group, err := client.Groups.Create(testUser, testGroup)
-	defer client.Groups.Delete(testUser, testGroup)
+	defer client.Groups.Delete(testUser, group.Slug)
 
-	group, err = client.Groups.Find(testUser, testGroup)
+	group, err = client.Groups.Find(testUser, group.Slug)
+	assert.NotNil(t, group)
 	assert.NoError(t, err)
 	assert.Equal(t, testGroup, group.Name)
 	assert.Equal(t, testUser, group.Owner.Username)
