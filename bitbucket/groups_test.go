@@ -1,80 +1,91 @@
 package bitbucket
 
 import (
-	"fmt"
-	"os"
+	"encoding/json"
+	"io/ioutil"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-var (
-	testGroup = "bitbucket_go_test"
-)
-
-func TestMain(m *testing.M) {
-	setup()
-	result := m.Run()
-	teardown()
-	os.Exit(result)
-}
-
-func setup() {
-	client.Groups.Create(testUser, testGroup)
-}
-
-func teardown() {
-	client.Groups.Delete(testUser, testGroup)
+func TestGroupsUnmarshal(t *testing.T) {
+	jsonString, err := ioutil.ReadFile("groups_test_GroupDetails.json")
+	assert.NoError(t, err)
+	group := &GroupDetails{}
+	err = json.Unmarshal(jsonString, group)
+	assert.NoError(t, err)
+	assert.Equal(t, "Rebel Alliance", group.Name)
+	assert.NotNil(t, group.Owner)
+	assert.Equal(t, "rebel_alliance", group.Slug)
+	assert.Equal(t, false, group.AutoAdd)
+	assert.Equal(t, false, group.EmailForwardingDisabled)
 }
 
 func Test_Create(t *testing.T) {
-	g, err := client.Groups.Create(testUser, "testing")
-	if err != nil {
-		t.Fail()
+	if testing.Short() {
+		t.Skip("skipping in short mode")
 	}
-	fmt.Printf("test\n")
-	fmt.Printf("\"%s\" != \"%s\"", g.Owner.Username, testUser)
-	if g.Owner.Username != testUser {
-		t.Fail()
-	}
-	if g.Name != "testing" {
-		t.Fail()
-	}
-	client.Groups.Delete(g.Owner.Username, g.Name)
+	testGroup := "Test_Create"
+	group, err := client.Groups.Create(testUser, testGroup)
+	defer client.Groups.Delete(testUser, testGroup)
+
+	// create
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+	assert.NotNil(t, group.Owner)
+	assert.Equal(t, "test_create", group.Slug)
+	assert.Equal(t, false, group.EmailForwardingDisabled)
+	assert.Equal(t, false, group.AutoAdd)
+	assert.Equal(t, testUser, group.Owner.Username)
+	assert.Equal(t, group, group.Name)
 }
 
-func Test_List(t *testing.T) {
-	groups, err := client.Groups.List(testUser)
-	if err != nil {
-		t.Error(err)
+func TestGroupsDelete(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
 	}
-
-	if len(groups) == 0 {
-		t.Error("no groups found")
-	}
-
-	group := groups[0]
-
-	// find group
-	found, err := client.Groups.Find(testUser, group.Slug)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if found.Slug != group.Slug {
-		t.Errorf("Error retrieving group %s/%s, got %s/%s", testUser, group.Slug, found.AccountName, found.Slug)
-	}
+	testGroup := "Test_Delete"
+	group, err := client.Groups.Create(testUser, testGroup)
+	err = client.Groups.Delete(testUser, group.Slug)
+	assert.NoError(t, err)
 }
 
-func Test_GroupFind(t *testing.T) {
-	group, err := client.Groups.Find(testUser, testGroup)
-	if err != nil {
-		t.Error(err)
+//
+// func Test_AddMember(t *testing.T) {
+// 	testGroup := "Test_AddMember"
+// 	group, err := client.Groups.Create(testUser, testGroup)
+// 	defer client.Groups.Delete(testUser, testGroup)
+//
+// 	_, err = client.Groups.AddMember(testUser, group.Slug, testUser)
+// 	assert.NoError(t, err)
+//
+// 	_, err = client.Groups.Find(testUser, group.Slug)
+// 	assert.NoError(t, err)
+// }
+//
+// func Test_List(t *testing.T) {
+// 	testGroup := "Test_List"
+// 	_, err := client.Groups.Create(testUser, testGroup)
+// 	defer client.Groups.Delete(testUser, testGroup)
+//
+// 	groups, err := client.Groups.List(testUser)
+// 	if err != nil {
+// 		t.Error(err)
+// 		return
+// 	}
+// 	assert.NotEmpty(t, groups, "no groups found")
+// }
+//
+func Test_Find(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
 	}
+	testGroup := "Test_List"
+	group, err := client.Groups.Create(testUser, testGroup)
+	defer client.Groups.Delete(testUser, testGroup)
 
-	if group.Name != testGroup {
-		t.Errorf("Error retrieving group %s/%s, got %s/%s", testUser, testGroup, group.AccountName, group.Slug)
-	}
-
-	if group.Owner.Username != testUser {
-		t.Errorf("Error retrieving username, expected: %s, got: %s", testUser, group.Owner.Username)
-	}
+	group, err = client.Groups.Find(testUser, testGroup)
+	assert.NoError(t, err)
+	assert.Equal(t, testGroup, group.Name)
+	assert.Equal(t, testUser, group.Owner.Username)
 }
