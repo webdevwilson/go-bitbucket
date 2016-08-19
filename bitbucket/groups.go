@@ -16,7 +16,6 @@ type Group struct {
 	Slug                    string `json:"slug"`
 	AutoAdd                 bool   `json:"auto_add"`
 	Permission              string `json:"permission"`
-	ResourceURI             string `json:"resource_uri"`
 	EmailForwardingDisabled bool   `json:"email_forwarding_disabled"`
 }
 
