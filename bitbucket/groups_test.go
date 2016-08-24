@@ -25,7 +25,7 @@ func TestGroupsCreate(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
-	testGroup := "Test_Create"
+	testGroup := "TestGroupsCreate"
 	group, err := client.Groups.Create(testUser, testGroup)
 	defer client.Groups.Delete(testUser, group.Slug)
 
@@ -44,38 +44,75 @@ func TestGroupsDelete(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
-	testGroup := "Test_Delete"
+	testGroup := "TestGroupsDelete"
 	group, err := client.Groups.Create(testUser, testGroup)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+
 	err = client.Groups.Delete(testUser, group.Slug)
 	assert.NoError(t, err)
 }
 
-//
-// func Test_AddMember(t *testing.T) {
-// 	testGroup := "Test_AddMember"
-// 	group, err := client.Groups.Create(testUser, testGroup)
-// 	defer client.Groups.Delete(testUser, testGroup)
-//
-// 	_, err = client.Groups.AddMember(testUser, group.Slug, testUser)
-// 	assert.NoError(t, err)
-//
-// 	_, err = client.Groups.Find(testUser, group.Slug)
-// 	assert.NoError(t, err)
-// }
-//
-// func Test_List(t *testing.T) {
-// 	testGroup := "Test_List"
-// 	_, err := client.Groups.Create(testUser, testGroup)
-// 	defer client.Groups.Delete(testUser, testGroup)
-//
-// 	groups, err := client.Groups.List(testUser)
-// 	if err != nil {
-// 		t.Error(err)
-// 		return
-// 	}
-// 	assert.NotEmpty(t, groups, "no groups found")
-// }
-//
+func TestGroupsAddMember(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	testGroup := "TestGroupsAddMember"
+	group, err := client.Groups.Create(testUser, testGroup)
+	defer client.Groups.Delete(testUser, group.Slug)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+
+	_, err = client.Groups.AddMember(testUser, group.Slug, testUser)
+	assert.NoError(t, err)
+
+	_, err = client.Groups.Find(testUser, group.Slug)
+	assert.NoError(t, err)
+}
+
+func TestGroupsRemoveMember(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	testGroup := "TestGroupsRemoveMember"
+	group, err := client.Groups.Create(testUser, testGroup)
+	defer client.Groups.Delete(testUser, group.Slug)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+
+	_, err = client.Groups.AddMember(testUser, group.Slug, testUser)
+	assert.NoError(t, err)
+
+	group, err = client.Groups.Find(testUser, group.Slug)
+	assert.Equal(t, 1, len(group.Members))
+
+	_, err = client.Groups.RemoveMember(testUser, group.Slug, testUser)
+	assert.NoError(t, err)
+
+	group, err = client.Groups.Find(testUser, group.Slug)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(group.Members))
+}
+
+func TestGroupsList(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	testGroup := "Test_List"
+	_, err := client.Groups.Create(testUser, testGroup)
+	defer client.Groups.Delete(testUser, testGroup)
+
+	groups, err := client.Groups.List(testUser)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	assert.NotEmpty(t, groups, "no groups found")
+}
+
 func TestGroupsFind(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
