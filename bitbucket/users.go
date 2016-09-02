@@ -14,7 +14,9 @@ type User struct {
 	FirstName   string `json:"first_name"` //	The first name associated with account.
 	LastName    string `json:"last_name"`  // The last name associated with the account. For a team account, this value is always empty.
 	DisplayName string `json:"display_name"`
-	Avatar      string `json:"avatar"`  // An avatar associated with the account.
+	IsStaff     bool   `json:"is_staff"`
+	Avatar      string `json:"avatar"` // An avatar associated with the account.
+	ResourceURI string `json:"resource_uri"`
 	IsTeam      bool   `json:"is_team"` // Indicates if this is a Team account.
 
 }

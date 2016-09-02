@@ -39,13 +39,6 @@ var DefaultClient = http.DefaultClient
 
 func (c *Client) do(method string, path string, params url.Values, values url.Values, v interface{}) error {
 
-	// if this is the guest client then we don't need
-	// to sign the request ... we will execute just
-	// a simple http request.
-	if c == Guest {
-		return c.guest(method, path, params, values, v)
-	}
-
 	// create the URI
 	uri, err := url.Parse("https://api.bitbucket.org/1.0" + path)
 	if err != nil {
@@ -92,66 +85,11 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 		return err
 	}
 
-	// Check for an http error status (ie not 200 StatusOK)
-	switch resp.StatusCode {
-	case 404:
-		return ErrNotFound
-	case 403:
-		return ErrForbidden
-	case 401:
-		return ErrNotAuthorized
-	case 400:
-		return ErrBadRequest
-	}
-
-	// Unmarshall the JSON response
-	if v != nil {
-		return json.Unmarshal(body, v)
-	}
-
-	return nil
-}
-
-func (c *Client) guest(method string, path string, params url.Values, values url.Values, v interface{}) error {
-
-	// create the URI
-	uri, err := url.Parse("https://api.bitbucket.org/1.0" + path)
-	if err != nil {
-		return err
-	}
-
-	if params != nil && len(params) > 0 {
-		uri.RawQuery = params.Encode()
-	}
-
-	// create the request
-	req := &http.Request{
-		URL:        uri,
-		Method:     method,
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-		Close:      true,
-	}
-
-	// add the Form values to the body
-	if values != nil && len(values) > 0 {
-		body := []byte(values.Encode())
-		buf := bytes.NewBuffer(body)
-		req.Body = ioutil.NopCloser(buf)
-	}
-
-	// make the request using the default http client
-	resp, err := DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	// Read the bytes from the body (make sure we defer close the body)
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
+	// fmt.Printf("%s %s\n", method, uri)
+	// if uri.String() == "https://api.bitbucket.org/1.0/groups/webdevwilson/testgroupsremovemember" {
+	// 	fmt.Printf("body:%s\n", body)
+	// 	fmt.Printf("status: %d\n", resp.StatusCode)
+	// }
 
 	// Check for an http error status (ie not 200 StatusOK)
 	switch resp.StatusCode {

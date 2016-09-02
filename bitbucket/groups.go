@@ -17,12 +17,12 @@ type Group struct {
 	AutoAdd                 bool   `json:"auto_add"`
 	Permission              string `json:"permission"`
 	EmailForwardingDisabled bool   `json:"email_forwarding_disabled"`
+	Owner                   User   `json:"owner"`
 }
 
 // GroupDetails - contains the group information and the owner & members
 type GroupDetails struct {
 	Group
-	Owner   User   `json:"owner"`
 	Members []User `json:"members"`
 }
 
@@ -67,15 +67,16 @@ func (gr *GroupResource) List(owner string) (g []*GroupDetails, err error) {
 	return g, nil
 }
 
-// Find - Retrieve a group by owner and slug
-func (gr *GroupResource) Find(owner string, slug string) (*GroupDetails, error) {
+// Get - Retrieve a group by owner and slug
+func (gr *GroupResource) Get(owner string, slug string) (*Group, error) {
 	ownerOrCurrentUser(gr, &owner)
 
 	filter := fmt.Sprintf("%s/%s", owner, slug)
 	params := url.Values{
 		"group": {filter},
 	}
-	var groups []GroupDetails
+
+	var groups []Group
 	err := gr.client.do("GET", "/groups", params, nil, &groups)
 	if err != nil {
 		return nil, err
@@ -99,12 +100,21 @@ func (gr *GroupResource) AddMember(owner string, group string, member string) (u
 	return
 }
 
+// GetMembers - Retrieve the members of a group
+func (gr *GroupResource) GetMembers(owner string, group string) (members *[]User, err error) {
+	ownerOrCurrentUser(gr, &owner)
+
+	path := fmt.Sprintf("/groups/%s/%s/members/", owner, group)
+	err = gr.client.do("GET", path, nil, nil, &members)
+	return
+}
+
 // RemoveMember - Remove a member from an existing group
-func (gr *GroupResource) RemoveMember(owner string, group string, member string) (user *User, err error) {
+func (gr *GroupResource) RemoveMember(owner string, group string, member string) (err error) {
 	ownerOrCurrentUser(gr, &owner)
 
 	path := fmt.Sprintf("/groups/%s/%s/members/%s", owner, group, member)
-	err = gr.client.do("DELETE", path, nil, nil, &user)
+	err = gr.client.do("DELETE", path, nil, nil, nil)
 	return
 }
 
