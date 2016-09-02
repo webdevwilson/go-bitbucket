@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -37,7 +39,7 @@ var (
 // the exception overriding for mock unit testing.
 var DefaultClient = http.DefaultClient
 
-func (c *Client) do(method string, path string, params url.Values, values url.Values, v interface{}) error {
+func (c *Client) do(method string, path string, params url.Values, values interface{}, v interface{}) error {
 
 	// create the URI
 	uri, err := url.Parse("https://api.bitbucket.org/1.0" + path)
@@ -59,15 +61,28 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 		Header:     make(http.Header),
 	}
 
-	if values != nil && len(values) > 0 {
-		body := []byte(values.Encode())
-		buf := bytes.NewBuffer(body)
-		req.Body = ioutil.NopCloser(buf)
+	// construct the body of the request
+	if values != nil {
+		var body []byte
+		if v, ok := values.(url.Values); ok {
+			body = []byte(v.Encode())
+
+			// (we'll need this in order to sign the request)
+			req.Form = v
+		} else {
+			var err error
+			body, err = json.Marshal(values)
+			if err != nil {
+				return nil
+			}
+		}
+		req.Body = nopCloser(string(body))
+		fmt.Printf("request body:%s", string(body))
 	}
 
-	// add the Form data to the request
-	// (we'll need this in order to sign the request)
-	req.Form = values
+	if v, ok := values.(url.Values); ok {
+		req.Form = v
+	}
 
 	// add authentication to the request
 	c.auth.authenticate(req)
@@ -109,4 +124,10 @@ func (c *Client) do(method string, path string, params url.Values, values url.Va
 	}
 
 	return nil
+}
+
+func nopCloser(str string) io.ReadCloser {
+	body := []byte(str)
+	buf := bytes.NewBuffer(body)
+	return ioutil.NopCloser(buf)
 }

@@ -40,6 +40,25 @@ func TestGroupsCreate(t *testing.T) {
 	assert.Equal(t, testGroup, group.Name)
 }
 
+func TestGroupsUpdate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	testGroup := "TestGroupsUpdate"
+	group, err := client.Groups.Create(testUser, testGroup)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+
+	group.Permission = "read"
+	client.Groups.Update(group)
+
+	group, err = client.Groups.Find(testUser, group.Slug)
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+	assert.Equal(t, "Read", group.Permission)
+}
+
 func TestGroupsDelete(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")

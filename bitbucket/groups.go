@@ -44,9 +44,9 @@ func (gr *GroupResource) Update(group *GroupDetails) (g *GroupDetails, err error
 	ownerOrCurrentUser(gr, &owner)
 
 	path := fmt.Sprintf("/groups/%s/%s", owner, group.Slug)
-	// body := url.Values{}
-	// body.Set("group", group)
-	err = gr.client.do("PUT", path, nil, nil, &g)
+	body := url.Values{}
+	body.Set("permission", group.Permission)
+	err = gr.client.do("PUT", path, nil, body, &g)
 	return
 }
 
